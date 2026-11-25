@@ -1,6 +1,6 @@
 # Approval Workflow Platform
 
-**A full-stack approval workflow with server-side authorization, an auditable state machine and real
+**A full-stack approval workflow with server-side authorization, an auditable state machine and optimistic
 concurrency control.** Employees request equipment; Manager, Finance and Operations approve in sequence; every
 decision is recorded in an append-only history.
 
@@ -9,8 +9,11 @@ dependencies and the whole demo runs locally with synthetic data.
 
 ![Dashboard for a manager: queue, status overview and recent activity](docs/images/dashboard.png)
 
+**Try it:** [Quick start](#quick-start) · [Demo walkthrough](#demo-walkthrough) · [Testing](#testing)
+
 > **Independent demonstration.** Original code built from general software patterns. All people, requests and
-> amounts are fictional. It has not been deployed and makes no production claims.
+> amounts are fictional. Sign-in uses seeded fictional identities with a shared demo password, not an identity
+> provider. It has not been deployed and makes no production claims.
 
 ## The problem
 
@@ -166,9 +169,13 @@ The roadmap and the full list are in [limitations and roadmap](docs/roadmap.md).
 
 ## AI-assisted development
 
-Built with AI assistance: the code, tests and documentation were drafted with Claude Code (Anthropic) under the
-author's direction. The author defined the scope, constraints and acceptance criteria and is responsible for
-reviewing and approving every change before publication. Test results and screenshots come from actual local runs.
+I designed and directed this project; it was implemented with substantial help from Claude Code (Anthropic). I
+defined the problem, scope, constraints and acceptance criteria, reviewed the design and the results, and decided
+what to publish. Most of the code, tests and documentation were generated with the assistant under that direction,
+which is why the commits carry a `Co-Authored-By` trailer. Results quoted here come from the automated tests,
+evaluations and CI runs in this repository, on synthetic data. They show that the code behaves as described under
+those conditions, not that it is ready for production, and nothing this README marks as simulated, planned or not
+tested has been validated.
 
 ---
 
