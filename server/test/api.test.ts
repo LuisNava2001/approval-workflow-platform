@@ -231,4 +231,18 @@ describe("HTTP hardening", () => {
       await locked.close();
     }
   });
+
+  it("refuses the shared demo password outside demo mode, with the same error as a wrong password", async () => {
+    const locked = await startServer({ demoMode: false });
+    try {
+      const refused = await locked.client().login("morgan");
+      const wrong = await locked.client().login("morgan", "not-the-password");
+      assert.equal(refused.status, 401);
+      assert.deepEqual(refused.body, wrong.body);
+      assert.equal(refused.body.error.code, "INVALID_CREDENTIALS");
+    } finally {
+      await locked.close();
+    }
+    assert.equal((await server.client().login("morgan")).status, 200); // demo mode (the default) is unchanged
+  });
 });

@@ -11,7 +11,7 @@ Types are defined in [`shared/contracts.ts`](../shared/contracts.ts).
 |---|---|---|---|
 | GET | `/api/health` | no | Liveness check: `{ "status": "ok" }` |
 | GET | `/api/demo/identities` | no | Demo identities for the login screen (no credentials). `404` when `DEMO_MODE=false` |
-| POST | `/api/auth/login` | no | `{ username, password }` → `{ user, expiresAt }` and the session cookie |
+| POST | `/api/auth/login` | no | `{ username, password }` → `{ user, expiresAt }` and the session cookie. With `DEMO_MODE=false` the demo password is refused (`401 INVALID_CREDENTIALS`) |
 | POST | `/api/auth/logout` | no | Deletes the server-side session and clears the cookie (`204`) |
 | GET | `/api/auth/session` | no | `{ user }` or `{ user: null }`; used by the UI at startup |
 | GET | `/api/auth/me` | yes | `{ user }`; `401` without a valid session |

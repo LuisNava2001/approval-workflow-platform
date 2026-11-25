@@ -73,10 +73,14 @@ describe("ActionPanel", () => {
 });
 
 describe("LoginPage", () => {
-  function mockApi(loginStatus = 200) {
+  function mockApi(loginStatus = 200, identitiesStatus = 200) {
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url === "/api/auth/session") return new Response(JSON.stringify({ user: null }), { status: 200 });
       if (url === "/api/demo/identities") {
+        if (identitiesStatus !== 200) {
+          return new Response(JSON.stringify({ error: { code: identitiesStatus === 404 ? "NOT_FOUND" : "INTERNAL", message: "x" } }),
+            { status: identitiesStatus });
+        }
         return new Response(
           JSON.stringify({ identities: [{ id: "u-morgan", username: "morgan", displayName: "Morgan Diaz", role: "MANAGER" }] }),
           { status: 200 },
@@ -105,6 +109,32 @@ describe("LoginPage", () => {
     await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url === "/api/auth/login")).toBe(true));
     const loginCall = fetchMock.mock.calls.find(([url]) => url === "/api/auth/login") as [string, RequestInit];
     expect(JSON.parse(String(loginCall[1].body))).toEqual({ username: "morgan", password: DEMO_PASSWORD });
+  });
+
+  it("with demo mode off on the server, does not offer the demo password or identities", async () => {
+    mockApi(200, 404);
+    const { container } = render(
+      <AuthProvider>
+        <LoginPage />
+      </AuthProvider>,
+    );
+    expect(await screen.findByText(/Demo mode is turned off on this server/)).toBeTruthy();
+    expect(container.textContent).not.toContain(DEMO_PASSWORD);
+    expect(screen.queryByRole("button", { name: /Sign in as/ })).toBeNull();
+    expect(screen.queryByText(/Demo identities are unavailable/)).toBeNull();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Sign in");
+    expect(screen.getByLabelText("Username")).toBeTruthy();
+  });
+
+  it("does not present the demo password when demo mode cannot be confirmed", async () => {
+    mockApi(200, 500);
+    const { container } = render(
+      <AuthProvider>
+        <LoginPage />
+      </AuthProvider>,
+    );
+    expect(await screen.findByText(/Demo identities are unavailable/)).toBeTruthy();
+    expect(container.textContent).not.toContain(DEMO_PASSWORD);
   });
 
   it("shows the server's error for bad credentials", async () => {

@@ -30,7 +30,7 @@ export function buildApplication(config: AppConfig): Application {
   const clock = config.clock ?? systemClock;
   const db = openDatabase(config.databasePath, { busyTimeoutMs: config.busyTimeoutMs ?? 5000 });
   if (config.seedWhenEmpty && isEmpty(db)) seedDemoData(db);
-  const auth = new AuthService(db, clock);
+  const auth = new AuthService(db, clock, SESSION_TTL_MS, { allowDemoPassword: config.demoMode });
   const requests = new RequestService(db, clock);
   const handler = createApp({
     auth,

@@ -29,6 +29,7 @@ app.server.listen(port, host, () => {
   console.log(`Approval Workflow Platform listening on http://${host}:${port}`);
   console.log(webDist ? `Serving the web client from ${webDist}` : "Web client not built: run `npm run build`, or `npm run dev:web` for the Vite dev server.");
   if (demoMode) console.log(`Demo mode: sign in as any seeded identity with the password "${DEMO_PASSWORD}".`);
+  else console.log("Demo mode off: demo identities are hidden and sign-in with the shared demo password is refused.");
 });
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

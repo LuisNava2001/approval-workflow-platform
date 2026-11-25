@@ -6,7 +6,7 @@ import { AuthService } from "../src/application/authService.ts";
 import { steppingClock } from "../src/application/clock.ts";
 import { RequestService } from "../src/application/requestService.ts";
 import { openDatabase } from "../src/infrastructure/db.ts";
-import { DEMO_PASSWORD, seedDemoData } from "../src/infrastructure/seed.ts";
+import { DEMO_PASSWORD, seedDemoData, seedUsers } from "../src/infrastructure/seed.ts";
 import { demoUser, TEST_START } from "./helpers.ts";
 
 function seeded() {
@@ -43,6 +43,20 @@ describe("seed data", () => {
   it("lets every demo identity sign in with the documented password", () => {
     const { auth } = seeded();
     for (const user of auth.listUsers()) assert.equal(auth.login({ username: user.username, password: DEMO_PASSWORD }).user.id, user.id);
+  });
+
+  it("outside demo mode refuses only the shared demo password, not other passwords", () => {
+    const clock = steppingClock(TEST_START);
+    const demoDb = openDatabase(":memory:");
+    seedDemoData(demoDb);
+    const locked = new AuthService(demoDb, clock, undefined, { allowDemoPassword: false });
+    for (const user of locked.listUsers()) {
+      assert.throws(() => locked.login({ username: user.username, password: DEMO_PASSWORD }), { code: "INVALID_CREDENTIALS" });
+    }
+    const provisionedDb = openDatabase(":memory:");
+    seedUsers(provisionedDb, "a-provisioned-secret");
+    const provisioned = new AuthService(provisionedDb, clock, undefined, { allowDemoPassword: false });
+    assert.equal(provisioned.login({ username: "avery", password: "a-provisioned-secret" }).user.username, "avery");
   });
 
   it("expires sessions after their time to live", () => {

@@ -41,23 +41,32 @@ export function LoginPage() {
   }
 
   const sorted = [...(identities.data ?? [])].sort((a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role));
+  // The server is the authority on demo mode: it lists demo identities only when DEMO_MODE is on, answers 404
+  // otherwise, and then refuses the demo password. The page offers that password only after the server listed them.
+  const demoMode = identities.data !== null;
+  const demoOff = identities.error instanceof ApiError && identities.error.status === 404;
 
   return (
     <main className="login">
       <header className="login-head">
         <p className="eyebrow">Approval Workflow Platform</p>
-        <h1>Sign in with a demo identity</h1>
-        <p className="muted">
-          Every person and request here is fictional. Pick an identity to explore the workflow from that role, or use the
-          form with the demo password <code>{DEMO_PASSWORD}</code>.
-        </p>
+        <h1>{demoMode ? "Sign in with a demo identity" : "Sign in"}</h1>
+        {demoMode ? (
+          <p className="muted">
+            Every person and request here is fictional. Pick an identity to explore the workflow from that role, or use
+            the form with the demo password <code>{DEMO_PASSWORD}</code>.
+          </p>
+        ) : null}
+        {demoOff ? (
+          <p className="muted">Demo mode is turned off on this server: the demo identities and the demo password are disabled.</p>
+        ) : null}
       </header>
 
       {error ? <Alert>{error}</Alert> : null}
 
       <section aria-label="Demo identities" className="identity-grid">
         {identities.loading ? <Loading label="Loading identities" /> : null}
-        {identities.error ? <Alert tone="warning">Demo identities are unavailable. Use the form below.</Alert> : null}
+        {identities.error && !demoOff ? <Alert tone="warning">Demo identities are unavailable. Use the form below.</Alert> : null}
         {sorted.map((identity) => (
           <button
             key={identity.id}
@@ -75,7 +84,7 @@ export function LoginPage() {
       </section>
 
       <form className="card login-form" onSubmit={onSubmit} aria-label="Sign in with a username">
-        <h2>Or sign in manually</h2>
+        <h2>{demoMode ? "Or sign in manually" : "Sign in with a username"}</h2>
         <label htmlFor="username">Username</label>
         <input id="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} />
         <label htmlFor="password">Password</label>

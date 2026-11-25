@@ -3,6 +3,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import type { Role, UserDto } from "../../../shared/contracts.ts";
+import { DEMO_PASSWORD } from "../../../shared/demo.ts";
 import type { Database } from "../infrastructure/db.ts";
 import { hashPassword, verifyPassword } from "../infrastructure/passwords.ts";
 import type { Clock } from "./clock.ts";
@@ -37,11 +38,17 @@ export class AuthService {
   private readonly db: Database;
   private readonly clock: Clock;
   private readonly ttlMs: number;
+  private readonly allowDemoPassword: boolean;
 
-  constructor(db: Database, clock: Clock, ttlMs = SESSION_TTL_MS) {
+  /**
+   * `allowDemoPassword: false` (DEMO_MODE=false) refuses every sign-in that uses the shared, published demo
+   * password, so seeded fictional accounts cannot be used outside demo mode whatever the database contains.
+   */
+  constructor(db: Database, clock: Clock, ttlMs = SESSION_TTL_MS, options: { allowDemoPassword?: boolean } = {}) {
     this.db = db;
     this.clock = clock;
     this.ttlMs = ttlMs;
+    this.allowDemoPassword = options.allowDemoPassword ?? true;
   }
 
   login(input: unknown): Session {
@@ -58,7 +65,9 @@ export class AuthService {
 
     const row = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username as string) as UserRow | undefined;
     const passwordMatches = verifyPassword(password as string, row?.password_hash ?? DUMMY_HASH);
-    if (!row || !passwordMatches) throw invalidCredentials();
+    // Same generic error as a wrong password: a caller cannot tell a disabled demo account from a bad guess.
+    const demoPasswordRefused = !this.allowDemoPassword && password === DEMO_PASSWORD;
+    if (!row || !passwordMatches || demoPasswordRefused) throw invalidCredentials();
 
     const now = this.clock.now();
     const token = randomBytes(32).toString("base64url");

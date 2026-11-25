@@ -12,10 +12,18 @@ Approvals are human decisions made on what the person saw. The client sends the 
 is a `409 CONFLICT`, not a silent overwrite. The check runs inside `BEGIN IMMEDIATE` and the `UPDATE` repeats it in
 its `WHERE` clause, which also protects against writers on other connections.
 
-## 3. The audit trail is part of the write, and immutable
+## 3. The audit trail is part of the write, and append-only for the application
 
-The status change and its event are one transaction; one cannot exist without the other. Triggers make the event
-table append-only at the database level, so even a bug or a manual SQL session cannot rewrite history.
+- **Transactional integrity.** The status change, the version bump and the event are written in one
+  `BEGIN IMMEDIATE` transaction. If the event insert fails, the status change is rolled back (tested), so one
+  cannot exist without the other.
+- **Application constraints.** The service only ever inserts events; no code path updates or deletes them.
+- **Trigger protection.** `BEFORE UPDATE` and `BEFORE DELETE` triggers on `request_events` abort any change, so a
+  bug or an ordinary `UPDATE`/`DELETE` against that table fails.
+- **Limits.** The triggers are ordinary schema objects. Anyone with write access to the SQLite file can drop them,
+  edit `requests` rows (which have no such trigger) or replace the file. There is no hash chain, signature or
+  external copy, so the history is not cryptographically immutable and a direct edit would go undetected. Tamper
+  evidence would need hashed or signed events, or a copy in append-only storage outside this database.
 
 ## 4. 404 instead of 403 for invisible requests
 

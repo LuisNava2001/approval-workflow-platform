@@ -36,7 +36,7 @@ Approval flows look simple and fail in subtle ways:
   recent activity.
 - **Responsive, accessible UI** in light and dark mode: status color always paired with icon and label, tables that
   become cards on phones.
-- **81 automated tests** plus an optional browser smoke test.
+- **85 automated tests** plus an optional browser smoke test.
 
 | Request detail with stage tracker and audit history | Phone layout |
 |---|---|
@@ -102,7 +102,7 @@ On first start the server creates `data/app.db` and seeds nine synthetic request
 |---|---|---|
 | `PORT` / `HOST` | `3000` / `127.0.0.1` | Listen address (loopback only by default) |
 | `DATABASE_PATH` | `data/app.db` | SQLite file |
-| `DEMO_MODE` | `true` | Show demo identities on the login screen |
+| `DEMO_MODE` | `true` | `true`: show demo identities and accept the demo password. `false`: hide them, keep the demo password off the login page and refuse any sign-in with it |
 | `COOKIE_SECURE` | `false` | Add `Secure` to the session cookie behind HTTPS |
 
 ## Demo walkthrough
@@ -136,7 +136,7 @@ returns `409 CONFLICT`; a finance user trying the same call at the manager stage
 ## Testing
 
 ```bash
-npm test            # 58 server tests (node --test) + 23 web tests (Vitest)
+npm test            # 60 server tests (node --test) + 25 web tests (Vitest)
 npm run verify      # typecheck + tests + production build
 ```
 
@@ -151,7 +151,7 @@ Node.js 24 and 26. See [testing](docs/testing.md).
 
 | | Scope |
 |---|---|
-| **Implemented** | Three-stage workflow, rejection and withdrawal, server-side authorization, optimistic concurrency, append-only audit trail, SQLite persistence and migrations, demo authentication with sessions, dashboard, request list with filters and search, request creation with validation, responsive light and dark UI, synthetic seed data, 81 automated tests, optional browser smoke test |
+| **Implemented** | Three-stage workflow, rejection and withdrawal, server-side authorization, optimistic concurrency, append-only audit trail, SQLite persistence and migrations, demo authentication with sessions, dashboard, request list with filters and search, request creation with validation, responsive light and dark UI, synthetic seed data, 85 automated tests, optional browser smoke test |
 | **Simulated** | Corporate identity: seeded fictional users with a shared demo password instead of an identity provider. The organization and its approval chain are fixed fixtures |
 | **Planned** | OIDC sign-in, configurable approval routes, notifications through an outbox, attachments, login rate limiting, structured logging, end-to-end tests in CI |
 | **Not tested** | macOS, browsers other than Chrome, screen readers, load and performance. Node.js 24 and Linux are covered by the CI workflow only, not by local runs |
